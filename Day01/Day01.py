@@ -43,4 +43,8 @@ def main():
 if __name__ == "__main__":
     main()
 
+# Question1: What is the sum of all of the calibration values?
+# Answer: 53974
+# Question2: What is the sum of all of the calibration values?
+# Answer: 52840
 # Time elapsed: 0.03156447410583496 s
