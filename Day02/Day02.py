@@ -76,9 +76,9 @@ def main():
         for k, v in values.items():
             result2 += power(v)
 
-    print("Question1:  What is the sum of the IDs of those games?")
+    print("Question 1: What is the sum of the IDs of those games?")
     print(f"Answer: {result1}")
-    print("Question2: What is the sum of the power of these sets?")
+    print("Question 2: What is the sum of the power of these sets?")
     print(f"Answer: {result2}")
     print(f"Time elapsed: {time.time() - start_time} s")
 
@@ -86,8 +86,8 @@ def main():
 if __name__ == "__main__":
     main()
 
-# Question1:  What is the sum of the IDs of those games?
+# Question 1: What is the sum of the IDs of those games?
 # Answer: 2563
-# Question2: What is the sum of the power of these sets?
+# Question 2: What is the sum of the power of these sets?
 # Answer: 70768
 # Time elapsed: 0.0 s
