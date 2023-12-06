@@ -1,5 +1,5 @@
 """ Advent of Code 2023, Day 5
-    Day 5: Day 5: If You Give A Seed A Fertilizer
+    Day 5: If You Give A Seed A Fertilizer
     Author: Chi-Kit Pao
 """
 
