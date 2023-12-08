@@ -6,7 +6,6 @@
 import math
 import os
 import re
-import sympy as sp
 import time
 
 
@@ -76,7 +75,6 @@ class Map:
         print("len(self.instructions):", len(self.instructions))
         print("cycle_length:", cycle_length)
         print("total_potential_goal_steps: ", total_potential_goal_steps)
-        assert sp.isprime(len(self.instructions))
 
         for i, pgs in enumerate(total_potential_goal_steps):
             assert (pgs[1][1] - pgs[0][1]) % len(self.instructions) == 0
@@ -93,7 +91,6 @@ class Map:
             print(a, b, c)
             assert a == c
             assert b == 0
-            assert sp.isprime(c)
             pgs[0][1] % len(self.instructions)
 
         instructions_length = len(self.instructions)
@@ -108,14 +105,9 @@ class Map:
         # [[79, 79], [71, 71], [53, 53], [67, 67], [73, 73], [47, 47]]
         print(total_potential_goal_cycles)
 
-        # 1: Find pairwise multiple cycles
-        pairwise_multiple_cycles = []
-        for i in range(0, len(total_potential_goal_cycles), 2):
-            pgc1 = total_potential_goal_cycles[i]
-            pgc2 = total_potential_goal_cycles[i + 1]
-            pairwise_multiple_cycles.append(pgc1[0] + (pgc2[1] - 1) * pgc1[1])
-        # 2: Find LCM of these cycles
-        lcm = math.lcm(*pairwise_multiple_cycles)
+        # Find LCM of these cycles and multiply it with instruction length
+        cycles, _ =  zip(*total_potential_goal_cycles)
+        lcm = math.lcm(*cycles)
         return lcm * instructions_length
 
 
@@ -142,4 +134,4 @@ if __name__ == "__main__":
 # Answer: 18673
 # Question 2: How many steps does it take before you're only on nodes that end with Z?
 # Answer: 17972669116327
-# Time elapsed: 0.08158349990844727 s
+# Time elapsed: 0.06822657585144043 s
