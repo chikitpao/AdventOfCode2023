@@ -152,5 +152,5 @@ if __name__ == "__main__":
 # Question 1: How many steps along the loop does it take to get from the starting position to the point farthest from the starting position?
 # Answer: 6968
 # Question 2: How many tiles are enclosed by the loop?
-# Answer:  413
+# Answer: 413
 # Time elapsed: 0.04077649116516113 s
