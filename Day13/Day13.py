@@ -1,5 +1,5 @@
-""" Advent of Code 2023, Day 12
-    Day 12: Hot Springs
+""" Advent of Code 2023, Day 13
+    Day 13: Point of Incidence
     Author: Chi-Kit Pao
 """
 
