@@ -3,9 +3,63 @@
     Author: Chi-Kit Pao
 """
 
+import math
 import os
 import re
 import time
+
+
+def debug(*args):
+    if True:
+        print(args)
+
+
+def make_ranges(x, m, a, s):
+    count = math.prod([x[1] - x[0], m[1] - m[0], a[1] - a[0], s[1] - s[0]])
+    return (x, m, a, s, count)
+
+
+empty_ranges = ((1, 1), (1, 1), (1, 1), (1, 1), 0)
+
+
+def split_range(ranges, lhs_index, op, rhs):
+    global empty_ranges
+    # Returns ranges_applied, ranges_remaining
+    if ranges[4] == 0:
+        return ranges, ranges
+    t = ranges[lhs_index]
+    if op == ">":
+        if t[0] > rhs:
+            return ranges, empty_ranges
+        elif t[1] <= rhs - 1:
+            return empty_ranges, ranges
+        else:
+            ranges_applied = []
+            ranges_remaining = []
+            for i in range(4):
+                if i == lhs_index:
+                    ranges_applied.append((rhs + 1, ranges[i][1]))
+                    ranges_remaining.append((ranges[i][0], rhs + 1))
+                else:
+                    ranges_applied.append(ranges[i])
+                    ranges_remaining.append(ranges[i])
+            return make_ranges(*ranges_applied), make_ranges(*ranges_remaining)
+    else:
+        if t[1] <= rhs:
+            return ranges, empty_ranges
+        elif t[0] >= rhs:
+            return empty_ranges, ranges
+        else:
+            ranges_applied = []
+            ranges_remaining = []
+            for i in range(4):
+                if i == lhs_index:
+                    ranges_applied.append((ranges[i][0], rhs))
+                    ranges_remaining.append((rhs, ranges[i][1]))
+                else:
+                    ranges_applied.append(ranges[i])
+                    ranges_remaining.append(ranges[i])
+            return make_ranges(*ranges_applied), make_ranges(*ranges_remaining)
 
 
 class Rule:
@@ -28,6 +82,11 @@ class Rule:
             out = groupdict["out"]
             self.rules.append((lhs_index, op, rhs, out))
 
+    def is_terminal(self):
+        return all(
+            map(lambda r: r[3] in ("A", "R"), self.rules)
+        ) and self.default_rule in ("A", "R")
+
     def op(self, part):
         for lhs_index, op, rhs, out in self.rules:
             lhs = part[lhs_index]
@@ -36,6 +95,33 @@ class Rule:
             elif op == "<" and lhs < rhs:
                 return out
         return self.default_rule
+
+    def op_range(self, rule_objs, ranges):
+        # TODO: Finish it:
+        # ranges: ((xl, xue), (ml, mue), (al, aue), (sl, sue), count)
+        if ranges[4] == 0:
+            return 0
+
+        terminals = ("A", "R")
+        total = 0
+        ranges_remaining = ranges
+        for lhs_index, op, rhs, out in self.rules:
+            ranges_applied, ranges_remaining = split_range(
+                ranges_remaining, lhs_index, op, rhs
+            )
+            if ranges_applied[4] != 0:
+                if out in terminals:
+                    if out == "A":
+                        total += ranges_applied[4]
+                else:
+                    total += rule_objs[out].op_range(rule_objs, ranges_applied)
+        if self.default_rule in terminals:
+            if self.default_rule == "A":
+                total += ranges_remaining[4]
+        else:
+            total += rule_objs[self.default_rule].op_range(rule_objs, ranges_remaining)
+
+        return total
 
 
 def parse_input():
@@ -87,6 +173,12 @@ def part1(rule_objs, parts):
     return result
 
 
+def part2(rule_objs):
+    return rule_objs["in"].op_range(
+        rule_objs, make_ranges((1, 4001), (1, 4001), (1, 4001), (1, 4001))
+    )
+
+
 def main():
     start_time = time.time()
     rule_objs, parts = parse_input()
@@ -99,14 +191,14 @@ def main():
     )
     print(f"Answer: {result1}")
 
-    # result2 = part2(rule_objs, parts)
-    # print(
-    #     "Question 2: Consider only your list of workflows; the list of part\n"
-    #     " ratings that the Elves wanted you to sort is no longer relevant.\n"
-    #     " How many distinct combinations of ratings will be accepted by the\n"
-    #     " Elves' workflows?"
-    # )
-    # print(f"Answer: {result2}")
+    result2 = part2(rule_objs)
+    print(
+        "Question 2: Consider only your list of workflows; the list of part\n"
+        " ratings that the Elves wanted you to sort is no longer relevant.\n"
+        " How many distinct combinations of ratings will be accepted by the\n"
+        " Elves' workflows?"
+    )
+    print(f"Answer: {result2}")
     print(f"Time elapsed: {time.time() - start_time} s")
 
 
@@ -117,4 +209,9 @@ if __name__ == "__main__":
 #  do you get if you add together all of the rating numbers for all
 #  of the parts that ultimately get accepted?
 # Answer: 432788
+# Question 2: Consider only your list of workflows; the list of part
+#  ratings that the Elves wanted you to sort is no longer relevant.
+#  How many distinct combinations of ratings will be accepted by the
+#  Elves' workflows?
+# Answer: 142863718918201
 # Time elapsed: 0.0 s
