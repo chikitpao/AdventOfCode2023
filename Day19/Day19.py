@@ -97,7 +97,6 @@ class Rule:
         return self.default_rule
 
     def op_range(self, rule_objs, ranges):
-        # TODO: Finish it:
         # ranges: ((xl, xue), (ml, mue), (al, aue), (sl, sue), count)
         if ranges[4] == 0:
             return 0
