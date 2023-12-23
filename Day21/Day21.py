@@ -9,7 +9,7 @@ import time
 
 
 def debug(*args):
-    if True:
+    if False:
         print(*args)
 
 
@@ -103,18 +103,14 @@ def part2(map_):
     
     max_steps = 26501365
     # How many times we are going to reach right boundaries of map.
-    right_boundaries_count = (max_steps - (map_.column_count - 1 - map_.start_pos[1])) // map_.column_count + 1
     # How many steps do we need after reaching right boundaries of map.
     remaining_steps = (max_steps - (map_.column_count - 1 - map_.start_pos[1])) % map_.column_count
     # Output:
-    # right_boundaries_count 202301
     # remaining_steps 0
-    debug(f"right_boundaries_count {right_boundaries_count}")
     debug(f"remaining_steps {remaining_steps}")
     
-    milestones = [i * map_.column_count - 1 - map_.start_pos[1] + remaining_steps for i in range(1, 5)]
-    # Last step index corresponding to whether right_boundaries_count is odd or even
-    last_correct_step = 3 if right_boundaries_count % 2 == 0 else 2
+    milestones = [i * map_.column_count - 1 - map_.start_pos[1] + remaining_steps for i in range(1, 4)]
+    last_correct_step = 2
     last_count_in_maps = []
     for steps in range(1, milestones[-1] + 1):
         is_milestone = steps in milestones
@@ -209,4 +205,4 @@ if __name__ == "__main__":
 #  Starting from the garden plot marked S on your infinite map, how many
 #  garden plots could the Elf reach in exactly 26501365 steps?
 # Answer: 625382480005896
-# Time elapsed: 83.26925039291382 s
+# Time elapsed: 28.80467963218689 s
