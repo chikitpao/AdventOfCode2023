@@ -4,6 +4,7 @@
 """
 
 from collections import defaultdict
+import copy
 import os
 import time
 
@@ -57,8 +58,10 @@ class Brick:
             return self.end_xy[self.orientation]
 
     def __repr__(self):
-        return f"Brick : {self.id} {self.start_xy} {self.start_z}"\
+        return (
+            f"Brick : {self.id} {self.start_xy} {self.start_z}"
             f" {self.end_xy} {self.end_z} {self.fixed} {self.orientation}"
+        )
 
     def __str__(self):
         return self.__repr__()
@@ -91,7 +94,7 @@ def parse_input(lines):
     return bricks, min_values, max_values
 
 
-def check_droped_bricks(fixed_bricks, bricks):
+def check_dropped_bricks(fixed_bricks, bricks):
     fixed_bricks_dict = defaultdict(list)
     fixed_bricks_count = 0
     for i in range(len(fixed_bricks)):
@@ -160,7 +163,7 @@ def drop_bricks(bricks, min_values, max_values):
         if handled == 0:
             break
 
-    check_droped_bricks(fixed_bricks, bricks)
+    check_dropped_bricks(fixed_bricks, bricks)
 
     return fixed_bricks
 
@@ -178,6 +181,111 @@ def part1(fixed_bricks, bricks):
         if len(l) == 1:
             unsafe.add(l[0])
     return len(bricks) - len(unsafe)
+
+# Reuse Module from Day 20
+class Module:
+    def __init__(self, name, type_, outputs):
+        self.name = name
+        self.type = type_
+        self.outputs = outputs
+        # Flip-Flop: off or on
+        # For Day 22: also for Conjunction
+        self.state = False
+        # Conjunction: {name: value}
+        self.inputs = dict()
+        # Common message queue
+        self.queue = None
+
+    def connect(self, other):
+        if other.type == "&":
+            other.inputs[self.name] = False
+
+    def send(self, target, value):
+        self.queue.append((self.name, target, value))
+        if value:
+            self.counters[1] += 1
+        else:
+            self.counters[0] += 1
+
+    def react(self, source, value):
+        if self.type == "":
+            for o in self.outputs:
+                self.send(o, value)
+        elif self.type == "%":
+            if value == False:
+                self.state = not self.state
+                for o in self.outputs:
+                    self.send(o, self.state)
+        elif self.type == "&":
+            assert source in self.inputs
+            self.inputs[source] = value
+            # High wenn all values high, else low (different to Day 20)
+            out_value = all(self.inputs.values())
+            self.state = out_value
+            for o in self.outputs:
+                self.send(o, out_value)
+
+
+def test_module(brick_id, modules_dict):
+    counters = [0, 0]  # not really needed (only for Day 20)
+    queue = []
+
+    for d in modules_dict.values():
+        d.queue = queue
+        d.counters = counters
+    try:
+        start_module = modules_dict[str(brick_id)]
+        start_module.type = ""
+    except KeyError:
+        return 0
+
+    while(True):
+        start_module.react("", True)
+        while True:
+            if len(queue) == 0:
+                break
+            signal = queue.pop(0)
+            if signal[1] in modules_dict:
+                modules_dict[signal[1]].react(signal[0], signal[2])
+        if len(queue) == 0:
+            break
+    
+    result = sum([m.state for m in modules_dict.values()])
+    return result
+
+def part2(fixed_bricks, bricks):
+    supporting_bricks_dict = dict()
+    supporting_bricks_set = set()
+    supported_bricks = []
+    supported_bricks_dict = defaultdict(list)
+    for brick in bricks:
+        supporting_bricks = set(
+            [fixed_bricks[pos[2] - 1][pos[0]][pos[1]] for pos in brick.brick_pos_gen()]
+        )
+        supporting_bricks.discard(0)
+        supporting_bricks.discard(brick.id)
+        supporting_bricks_dict[brick.id] = supporting_bricks
+        supporting_bricks_set.update(supporting_bricks)
+        if len(supporting_bricks) > 0:
+            supported_bricks.append(brick.id)
+            for s in supporting_bricks:
+                supported_bricks_dict[s].append(brick.id)
+
+    new_set = supporting_bricks_set.union(supported_bricks)
+    modules_dict = dict()
+    for i in new_set:
+        modules_dict[str(i)] = Module(str(i), "&", [])
+    for k, v  in supported_bricks_dict.items():
+        outputs = [str(i) for i in v]
+        m = modules_dict[str(k)]
+        m.outputs = outputs
+        for o in m.outputs:
+            m.connect(modules_dict[o])
+
+    result = 0
+    for i in supporting_bricks_set:
+        result += test_module(i, copy.deepcopy(modules_dict))
+    return result
 
 
 def main():
@@ -197,11 +305,13 @@ def main():
     )
     print(f"Answer: {result1}")
 
-    # result2 = 0
-    # print(
-    #    "Question 2: "
-    # )
-    # print(f"Answer: {result2}")
+    result2 = part2(fixed_bricks, bricks)
+    print(
+        "Question 2: For each brick, determine how many other bricks would\n"
+        " fall if that brick were disintegrated. What is the sum of the number\n"
+        " of other bricks that would fall?"
+    )
+    print(f"Answer: {result2}")
     print(f"Time elapsed: {time.time() - start_time} s")
 
 
@@ -212,4 +322,8 @@ if __name__ == "__main__":
 #  Once they've settled, consider disintegrating a single brick; how
 #  many bricks could be safely chosen as the one to get disintegrated?
 # Answer: 475
-# Time elapsed: 3.2847986221313477 s
+# Question 2: For each brick, determine how many other bricks would
+#  fall if that brick were disintegrated. What is the sum of the number
+#  of other bricks that would fall?
+# Answer: 79144
+# Time elapsed: 40.40147376060486 s
